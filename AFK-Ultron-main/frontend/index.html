@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFK-Ultron Command Panel | Real-Time Surveillance</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <h1 class="title">🛡️ AFK-ULTRON COMMAND PANEL</h1>
+            <span class="subtitle">Real-Time Drone Surveillance System</span>
+        </div>
+        <div class="header-right">
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Connecting...</span>
+            </div>
+            <div class="drone-info">
+                <span class="drone-id">ULTRON-01</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- Left Panel: Map -->
+        <section class="map-section">
+            <div class="section-header">
+                <h2>🗺️ LIVE TACTICAL MAP</h2>
+                <div class="map-controls">
+                    <button class="btn-icon" id="setLocationBtn" title="Set GPS Location">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg>
+                    </button>
+                    <button class="btn-icon" id="centerMapBtn" title="Center Map">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                    <button class="btn-icon" id="clearMarkersBtn" title="Clear Markers">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="map" class="map-container"></div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <span class="legend-dot high"></span>
+                    <span>High Alert (≥85%)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot medium"></span>
+                    <span>Medium Alert (≥70%)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot low"></span>
+                    <span>Low Alert (<70%)< /span>
+                </div>
+            </div>
+
+            <!-- Current GPS Location Display -->
+            <div class="current-location">
+                <span class="location-label">📍 Map Center:</span>
+                <span class="location-coords" id="currentLocation">28.6139, 77.2090</span>
+            </div>
+        </section>
+
+        <!-- Right Panel: Alerts & Stats -->
+        <aside class="sidebar">
+            <!-- Live Alerts Feed -->
+            <section class="alerts-section">
+                <div class="section-header">
+                    <h2>⚠️ LIVE ALERTS</h2>
+                    <span class="alert-count" id="alertCount">0</span>
+                </div>
+                <div class="alerts-feed" id="alertsFeed">
+                    <div class="no-alerts">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <p>No alerts detected</p>
+                        <span>System monitoring active</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Dashboard -->
+            <section class="stats-section">
+                <div class="section-header">
+                    <h2>📊 STATISTICS</h2>
+                    <select id="statsPeriod" class="period-selector">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Detections</span>
+                            <span class="stat-value" id="totalDetections">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏰</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Peak Hour</span>
+                            <span class="stat-value" id="peakHour">--:--</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Avg Confidence</span>
+                            <span class="stat-value" id="avgConfidence">0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card high-alert">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-content">
+                            <span class="stat-label">High Alerts</span>
+                            <span class="stat-value" id="highAlerts">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Controls -->
+                <div class="export-controls">
+                    <button class="btn-export" id="exportCSV">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                        Export CSV
+                    </button>
+                    <button class="btn-export" id="exportPDF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        Export PDF
+                    </button>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon" id="toastIcon"></div>
+        <div class="toast-content">
+            <span class="toast-title" id="toastTitle"></span>
+            <span class="toast-message" id="toastMessage"></span>
+        </div>
+    </div>
+
+    <!-- GPS Location Modal -->
+    <div class="modal" id="locationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📍 Set GPS Location</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Enter GPS coordinates to center the map</p>
+
+                <!-- Use My Location Button -->
+                <button class="btn-geolocation" id="useMyLocationBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="3" />
+                        <line x1="12" y1="2" x2="12" y2="6" />
+                        <line x1="12" y1="18" x2="12" y2="22" />
+                        <line x1="2" y1="12" x2="6" y2="12" />
+                        <line x1="18" y1="12" x2="22" y2="12" />
+                    </svg>
+                    Use My Current Location
+                </button>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="latitudeInput">Latitude</label>
+                    <input type="number" id="latitudeInput" placeholder="28.6139" step="0.000001" min="-90" max="90">
+                </div>
+                <div class="input-group">
+                    <label for="longitudeInput">Longitude</label>
+                    <input type="number" id="longitudeInput" placeholder="77.2090" step="0.000001" min="-180" max="180">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" id="cancelLocation">Cancel</button>
+                    <button class="btn-primary" id="applyLocation">Apply Location</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p>Initializing Command Panel...</p>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="css/js/api.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

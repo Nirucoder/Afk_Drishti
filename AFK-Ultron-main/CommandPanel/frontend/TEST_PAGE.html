@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GPS Feature Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #0a0e27;
+            color: white;
+        }
+
+        .test-box {
+            background: #111827;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #00ff88;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #00ff88;
+            color: #0a0e27;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00ccff;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1a1f3a;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 GPS Feature Test Page</h1>
+
+    <div class="test-box">
+        <h2>Test 1: Check if files are loading</h2>
+        <p id="cssTest">❌ CSS not loaded</p>
+        <p id="jsTest">❌ JavaScript not loaded</p>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 2: Geolocation API</h2>
+        <button onclick="testGeolocation()">Test Browser Geolocation</button>
+        <div class="status" id="geoStatus">Click button to test</div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 3: Check Main Page</h2>
+        <p>Open the main dashboard: <a href="index.html" style="color: #00ff88;">index.html</a></p>
+        <p>Or go to: <a href="http://localhost:5000" style="color: #00ff88;">http://localhost:5000</a></p>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 4: Clear Cache Instructions</h2>
+        <ol>
+            <li>Press <code>Ctrl + Shift + Delete</code></li>
+            <li>Select "Cached images and files"</li>
+            <li>Click "Clear data"</li>
+            <li>Close and reopen browser</li>
+            <li>Go to <code>http://localhost:5000</code></li>
+        </ol>
+    </div>
+
+    <script>
+        // Test if JavaScript is working
+        document.getElementById('jsTest').innerHTML = '✅ JavaScript is working!';
+        document.getElementById('jsTest').style.color = '#00ff88';
+
+        // Test if CSS is applied
+        if (getComputedStyle(document.body).backgroundColor === 'rgb(10, 14, 39)') {
+            document.getElementById('cssTest').innerHTML = '✅ CSS is working!';
+            document.getElementById('cssTest').style.color = '#00ff88';
+        }
+
+        function testGeolocation() {
+            const status = document.getElementById('geoStatus');
+            status.innerHTML = '⏳ Requesting location...';
+
+            if (!navigator.geolocation) {
+                status.innerHTML = '❌ Geolocation not supported';
+                status.style.color = '#ff4444';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    const acc = Math.round(position.coords.accuracy);
+
+                    status.innerHTML = `✅ Location found!<br>
+                        📍 Latitude: ${lat}<br>
+                        📍 Longitude: ${lon}<br>
+                        🎯 Accuracy: ±${acc}m`;
+                    status.style.color = '#00ff88';
+                },
+                (error) => {
+                    let msg = '';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            msg = '❌ Permission denied - Please allow location access';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            msg = '❌ Location unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            msg = '❌ Request timed out';
+                            break;
+                    }
+                    status.innerHTML = msg;
+                    status.style.color = '#ff4444';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+    </script>
+</body>
+
+</html>
