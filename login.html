@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drishti | Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --surface: rgba(17, 24, 39, 0.7);
+            --surface-hover: #1f2937;
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --brand-primary: #3b82f6; /* Premium clean blue */
+            --brand-hover: #2563eb;
+            --focus-ring: rgba(59, 130, 246, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Modern Abstract Background: Subtle glowing orbs instead of cyber grids */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .orb-1 {
+            width: 450px;
+            height: 450px;
+            background: rgba(59, 130, 246, 0.15); /* Soft Blue */
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(249, 115, 22, 0.1); /* Soft Orange */
+            bottom: -150px;
+            right: -100px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+            position: relative;
+            z-index: 10;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Abstract, clean brand icon */
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            display: inline-block;
+            position: relative;
+        }
+        
+        /* A subtle eye/camera lens shape in the icon */
+        .brand-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px; height: 12px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .brand-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #d1d5db;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-group input::placeholder {
+            color: #6b7280;
+        }
+
+        .form-group input:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .forgot-password {
+            float: right;
+            font-size: 0.875rem;
+            color: var(--brand-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password:hover {
+            color: var(--brand-hover);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background-color 0.2s ease;
+            font-family: inherit;
+        }
+
+        .submit-btn:hover {
+            background: var(--brand-hover);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider span {
+            padding: 0 12px;
+        }
+
+        .sso-btn {
+            width: 100%;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sso-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-text a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-text a:hover {
+            color: var(--brand-primary);
+        }
+
+        /* Simple interaction class */
+        .loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Subtle Ambient Glows -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <div class="login-card">
+        <div class="brand-header">
+            <div class="brand-logo">
+                <span class="brand-icon"></span>
+                Drishti
+            </div>
+            <div class="brand-subtitle">Sign in to your dashboard</div>
+        </div>
+
+        <!-- Clean, No-Nonsense Form -->
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" placeholder="name@organization.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    Password
+                    <a href="#" class="forgot-password">Forgot?</a>
+                </label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                Sign in
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>or continue with</span>
+        </div>
+
+        <button class="sso-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.66 15.63 16.89 16.79 15.73 17.57V20.34H19.3C21.38 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"/>
+                <path d="M12 23C14.97 23 17.46 22.02 19.3 20.34L15.73 17.57C14.73 18.24 13.47 18.66 12 18.66C9.16 18.66 6.75 16.74 5.86 14.16H2.17V17.02C4.01 20.67 7.7 23 12 23Z" fill="#34A853"/>
+                <path d="M5.86 14.16C5.63 13.49 5.5 12.76 5.5 12C5.5 11.24 5.63 10.51 5.86 9.84V6.98H2.17C1.41 8.49 1 10.19 1 12C1 13.81 1.41 15.51 2.17 17.02L5.86 14.16Z" fill="#FBBC05"/>
+                <path d="M12 5.34C13.62 5.34 15.07 5.9 16.21 6.99L19.38 3.82C17.46 2.03 14.97 1 12 1C7.7 1 4.01 3.33 2.17 6.98L5.86 9.84C6.75 7.26 9.16 5.34 12 5.34Z" fill="#EA4335"/>
+            </svg>
+            Google
+        </button>
+
+        <div class="footer-text">
+            Need an account? <a href="#">Request access</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            
+            // Subtle, professional loading state
+            btn.innerHTML = 'Signing in...';
+            btn.classList.add('loading');
+
+            setTimeout(() => {
+                btn.innerHTML = 'Success';
+                btn.style.backgroundColor = '#10b981'; // Tailwind Emerald 500
+                
+                // Reset after brief delay
+                setTimeout(() => {
+                    btn.innerHTML = 'Sign in';
+                    btn.style.backgroundColor = '';
+                    btn.classList.remove('loading');
+                    // e.g. window.location.href = '/dashboard';
+                }, 1500);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
