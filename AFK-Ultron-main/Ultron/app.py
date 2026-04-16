@@ -7,6 +7,8 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from PIL import Image, ImageTk, ImageOps, ImageDraw
 from ultralytics import YOLO
+from sahi import AutoDetectionModel
+from sahi.predict import get_sliced_prediction
 import math
 import datetime
 import time
@@ -45,15 +47,17 @@ FRAME_WIDTH = 640
 FRAME_HEIGHT = 360 
 
 # 4. DETECTION TUNING
-CONFIDENCE_THRESHOLD = 0.65 
-IOU_THRESHOLD = 0.45
+# Dropped confidence drastically. In Search & Rescue, a false positive is better than a false negative (detects partial limbs).
+CONFIDENCE_THRESHOLD = 0.15 
+IOU_THRESHOLD = 0.30
 
 # 5. COMMAND PANEL INTEGRATION
 ENABLE_COMMAND_PANEL = True  # Set to False to disable JSON export
 JSON_OUTPUT_PATH = "../CommandPanel/data/live_feed.json"       
 
 class DroneApp:
-    def __init__(self, root, model_name='yolov8n.pt'):
+    def __init__(self, root, model_name='yolov8s.pt'):
+        # Upgraded to YOLOv8s (Small). Deeper neural network accurately identifies partial body parts (like hands/arms).
         self.root = root
         self.root.title("Ultron Drone Command Center")
         self.root.geometry("1400x900")
@@ -62,7 +66,7 @@ class DroneApp:
         # --- Configuration ---
         self.camera_source = CAMERA_SOURCE
         self.model_name = model_name
-        self.target_class_id = 0 # 'person'
+        self.target_class_ids = [0] # Standard YOLO COCO: 0=person
         self.confidence_threshold = CONFIDENCE_THRESHOLD
         self.iou_threshold = IOU_THRESHOLD
         
@@ -405,8 +409,18 @@ class DroneApp:
 
     def connect_camera_thread(self):
         if not self.model:
-            try: self.model = YOLO('yolov8n.pt'); print("YOLOv8 Loaded.")
-            except: pass
+            try: 
+                self.model = YOLO(self.model_name)
+                # Initialize SAHI AutoDetectionModel
+                self.sahi_model = AutoDetectionModel.from_pretrained(
+                    model_type='yolov8',
+                    model_path=self.model_name,
+                    confidence_threshold=self.confidence_threshold,
+                    device="cuda:0" # Use GPU
+                )
+                print("YOLOv8 & SAHI Loaded.")
+            except Exception as e: 
+                print(f"Model Load Error: {e}")
         cap = cv2.VideoCapture(self.camera_source)
         self.root.after(0, self.on_camera_connected, cap)
         self.cap = cap
@@ -661,6 +675,7 @@ class DroneApp:
             self.root.after(100, self.update_frame)
             return
 
+        original_frame = frame.copy()
         frame = cv2.resize(frame, (640, 360))
         self.radar_canvas.delete("blip")
         
@@ -679,7 +694,7 @@ class DroneApp:
 
         if not valid_cloud:
             if not self.is_local_inferencing and self.frame_count % 3 == 0:
-                threading.Thread(target=self.run_local_inference_thread, args=(frame.copy(),), daemon=True).start()
+                threading.Thread(target=self.run_local_inference_thread, args=(original_frame.copy(),), daemon=True).start()
             
             count = len(self.last_local_boxes)
             for det in self.last_local_boxes:
@@ -738,11 +753,55 @@ class DroneApp:
     def run_local_inference_thread(self, frame):
         try:
             self.is_local_inferencing = True
-            res = self.model.predict(frame, verbose=False, conf=self.confidence_threshold, classes=[0])
-            if res:
-                self.last_local_boxes = [{'coords': list(map(int, b.xyxy[0])), 'conf': float(b.conf[0])} for b in res[0].boxes]
-        except: pass
-        finally: self.is_local_inferencing = False
+            
+            # SAHI Sliced Prediction on High-Res Frame
+            h, w = frame.shape[:2]
+            scale_x = 640 / w
+            scale_y = 360 / h
+            
+            # Use SAHI if model is loaded
+            if hasattr(self, 'sahi_model'):
+                result = get_sliced_prediction(
+                    frame,
+                    self.sahi_model,
+                    slice_height=512,  # Sub-image size
+                    slice_width=512,
+                    overlap_height_ratio=0.2, # 20% overlap
+                    overlap_width_ratio=0.2
+                )
+                
+                boxes = []
+                for obj in result.object_prediction_list:
+                    if obj.score.value >= self.confidence_threshold:
+                        # Target VisDrone human classes (0, 1)
+                        if obj.category.id in self.target_class_ids:
+                            # Scale coordinates down to match 640x360 GUI framework and GPS logic
+                            x1 = int(obj.bbox.minx * scale_x)
+                            y1 = int(obj.bbox.miny * scale_y)
+                            x2 = int(obj.bbox.maxx * scale_x)
+                            y2 = int(obj.bbox.maxy * scale_y)
+                            boxes.append({'coords': [x1, y1, x2, y2], 'conf': float(obj.score.value)})
+                
+                self.last_local_boxes = boxes
+            else:
+                # Fallback to standard YOLO if SAHI failed to initialize
+                res = self.model.predict(frame, verbose=False, conf=self.confidence_threshold, classes=self.target_class_ids)
+                if res:
+                    boxes = []
+                    for b in res[0].boxes:
+                        # Scale coords
+                        coords = list(map(int, b.xyxy[0]))
+                        x1 = int(coords[0] * scale_x)
+                        y1 = int(coords[1] * scale_y)
+                        x2 = int(coords[2] * scale_x)
+                        y2 = int(coords[3] * scale_y)
+                        boxes.append({'coords': [x1, y1, x2, y2], 'conf': float(b.conf[0])})
+                    self.last_local_boxes = boxes
+
+        except Exception as e: 
+            print(f"Local Inference Error: {e}")
+        finally: 
+            self.is_local_inferencing = False
 
     def show_frame_in_gui(self, frame):
         try:
